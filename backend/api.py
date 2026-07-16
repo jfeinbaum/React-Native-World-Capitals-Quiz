@@ -1,0 +1,79 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import random
+import sqlite3
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/countries")
+def get_countries():
+    db = DB()
+    countries_capitals = db.countries_capitals()
+    db.disconnect()
+    return countries_capitals
+
+@app.get("/country/{country}")
+def allowed_capitals_for_country(country: str):
+    db = DB()
+    capitals = db.allowed_capitals_from_country(country)
+    db.disconnect()
+    return capitals
+
+
+
+
+DB_NAME = 'data.db'
+
+class DB:
+    def __init__(self):
+        self.conn = sqlite3.connect(DB_NAME)
+        self.cur = self.conn.cursor()
+
+    def disconnect(self):
+        self.conn.close()
+
+    def capital_from_country(self, country):
+        sql = ''' SELECT display_capital FROM data WHERE country=? '''
+        self.cur.execute(sql, (country,))
+        return self.cur.fetchall()[0][0]
+
+    def countries(self):
+        sql = ''' SELECT country FROM data ORDER BY country '''
+        self.cur.execute(sql)
+        return [r[0] for r in self.cur.fetchall()]
+
+    def countries_capitals(self):
+        sql = ''' SELECT country, display_capital FROM data ORDER BY country '''
+        self.cur.execute(sql)
+        return {country: display_capital for (country, display_capital) in self.cur.fetchall()}
+
+    def allowed_capitals_from_country(self, country):
+        display_capital = self.capital_from_country(country)
+        capitals = [display_capital]
+        sql = ''' SELECT c.capital FROM allowed_capitals c 
+        JOIN data d on d.id=c.country_id WHERE d.country=? '''
+        self.cur.execute(sql, (country,))
+        capitals.extend([r[0] for r in self.cur.fetchall()])
+        return capitals
+
+    def all_countries_and_times(self):
+        sql = ''' SELECT country, time FROM data '''
+        self.cur.execute(sql)
+        return {country: time for (country, time) in self.cur.fetchall()}
+
+    def get_country_time(self, country):
+        sql = ''' SELECT time FROM data where country=? '''
+        self.cur.execute(sql, (country,))
+        return self.cur.fetchall()[0][0]
+
+    def update_country_time(self, country, new_time):
+        sql = ''' UPDATE data SET time=? WHERE country=? '''
+        self.cur.execute(sql, (new_time, country))
