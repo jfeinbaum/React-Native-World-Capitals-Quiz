@@ -99,10 +99,3 @@ db = DB()
 def get_countries():
     country_data = db.countries_allowed_capitals()
     return country_data
-
-
-
-if __name__ == '__main__':
-    db = DB()
-    r = db.countries_allowed_capitals()
-    print(r['United States of America'])
