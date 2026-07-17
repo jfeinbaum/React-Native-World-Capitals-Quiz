@@ -8,26 +8,32 @@ const API_URL = 'http://10.0.0.234:8000';
 
 
 export default function App() {
+
+  type CapitalInfo = {
+    display_capital: string;
+    allowed_capitals: string[];
+  };
+  type CountryData = Record<string, CapitalInfo>;
+
+
+
+
   const [country, setCountry] = useState('');
-  const [countries, setCountries] = useState<Record<string, string>>({});
+  //const [countries, setCountries] = useState<Record<string, string>>({});
+  const [countryData, setCountryData] = useState<CountryData>({});
   const [guess, setGuess] = useState('');
   const [statusBarText, setStatusBarText] = useState('');
 
   useEffect(() => {
     fetch(`${API_URL}/countries`)
       .then((res) => res.json())
-      .then(setCountries)
+      .then(setCountryData)
       .catch(console.error);
   }, []);
 
 
   function getRandomCountry(): string | undefined {
-    const keys = Object.keys(countries);
-
-    if (keys.length === 0) {
-      return undefined;
-    }
-
+    const keys = Object.keys(countryData);
     return keys[Math.floor(Math.random() * keys.length)];
   }
   
@@ -36,9 +42,9 @@ export default function App() {
   { key: 'capital', title: 'Capital' },
 ];
 
-  const rows: TableRow[] = Object.entries(countries).map(([name, capital]) => ({
+  const rows: TableRow[] = Object.entries(countryData).map(([name, info]) => ({
     name,
-    capital,
+    capital: info.display_capital,
   }));
 
   const handleInput = (text: string) => {
@@ -51,14 +57,19 @@ export default function App() {
     setStatusBarText('')
   }
 
-  const submitGuess = () => {
-    const guessLower = guess.trim().toLowerCase();
-    const capital = countries[country]?.toLowerCase();
+const submitGuess = () => {
+  const info = countryData[country];
 
-    if (guessLower === capital) {
-      setStatusBarText('Correct!');
-    }
-  };
+  const guessLower = guess.trim().toLowerCase();
+
+  const isCorrect = info.allowed_capitals.some(
+    capital => capital.toLowerCase() === guessLower
+  );
+
+  if (isCorrect) {
+    setStatusBarText("Correct!");
+  }
+};
 
   return (
     <View style={styles.container}>

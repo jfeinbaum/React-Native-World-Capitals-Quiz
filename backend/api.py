@@ -53,6 +53,37 @@ class DB:
         sql = ''' UPDATE data SET time=? WHERE country=? '''
         self.cur.execute(sql, (new_time, country))
 
+    def countries_allowed_capitals(self):
+        sql = """
+            SELECT
+                d.country,
+                d.display_capital,
+                c.capital
+            FROM data d
+            LEFT JOIN allowed_capitals c
+                ON d.id = c.country_id
+            ORDER BY d.country, c.capital
+        """
+
+        self.cur.execute(sql)
+
+        countries = {}
+
+        for country, display_capital, allowed_capital in self.cur.fetchall():
+            if country not in countries:
+                countries[country] = {
+                    "display_capital": display_capital,
+                    "allowed_capitals": [display_capital]
+                }
+
+            if (
+                allowed_capital is not None
+                and allowed_capital not in countries[country]["allowed_capitals"]
+            ):
+                countries[country]["allowed_capitals"].append(allowed_capital)
+
+        return countries
+
 app = FastAPI()
 
 app.add_middleware(
@@ -66,13 +97,12 @@ db = DB()
 
 @app.get("/countries")
 def get_countries():
-    countries_capitals = db.countries_capitals()
-    return countries_capitals
-
-@app.get("/country/{country}")
-def allowed_capitals_for_country(country: str):
-    capitals = db.allowed_capitals_from_country(country)
-    return capitals
+    country_data = db.countries_allowed_capitals()
+    return country_data
 
 
 
+if __name__ == '__main__':
+    db = DB()
+    r = db.countries_allowed_capitals()
+    print(r['United States of America'])
