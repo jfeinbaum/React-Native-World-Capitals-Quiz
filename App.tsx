@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
 import { Table, TableColumn, TableRow } from './components/Table';
 
@@ -19,6 +19,8 @@ export default function App() {
   const [countryData, setCountryData] = useState<CountryData>({});
   const [guess, setGuess] = useState('');
   const [statusBarText, setStatusBarText] = useState('');
+
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/countries`)
@@ -50,7 +52,9 @@ export default function App() {
   const refreshButtonPressed = () => {
     setCountry(getRandomCountry() || '');
     setGuess('');
-    setStatusBarText('')
+    setStatusBarText('');
+    inputRef.current?.focus();
+    
   }
 
 const submitGuess = () => {
@@ -91,9 +95,11 @@ const submitGuess = () => {
       
       <View style={styles.placeholder}>
         <TextInput
+          ref={inputRef}
           style={styles.input}
           value={guess}
           onChangeText={handleInput}
+          onSubmitEditing={submitGuess}
           autoCapitalize="words"
         />
       </View>
