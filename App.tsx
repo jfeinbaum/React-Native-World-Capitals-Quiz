@@ -15,11 +15,7 @@ export default function App() {
   };
   type CountryData = Record<string, CapitalInfo>;
 
-
-
-
   const [country, setCountry] = useState('');
-  //const [countries, setCountries] = useState<Record<string, string>>({});
   const [countryData, setCountryData] = useState<CountryData>({});
   const [guess, setGuess] = useState('');
   const [statusBarText, setStatusBarText] = useState('');
@@ -59,16 +55,16 @@ export default function App() {
 
 const submitGuess = () => {
   const info = countryData[country];
-
   const guessLower = guess.trim().toLowerCase();
-
   const isCorrect = info.allowed_capitals.some(
     capital => capital.toLowerCase() === guessLower
   );
-
   if (isCorrect) {
     setStatusBarText("Correct!");
-  }
+  } else {
+  setStatusBarText("");
+}
+
 };
 
   return (
