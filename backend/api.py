@@ -3,38 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import random
 import sqlite3
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.get("/countries")
-def get_countries():
-    db = DB()
-    countries_capitals = db.countries_capitals()
-    db.disconnect()
-    return countries_capitals
-
-@app.get("/country/{country}")
-def allowed_capitals_for_country(country: str):
-    db = DB()
-    capitals = db.allowed_capitals_from_country(country)
-    db.disconnect()
-    return capitals
-
-
-
 
 DB_NAME = 'data.db'
 
 class DB:
     def __init__(self):
-        self.conn = sqlite3.connect(DB_NAME)
+        self.conn = sqlite3.connect(DB_NAME, check_same_thread=False
+                                    )
         self.cur = self.conn.cursor()
 
     def disconnect(self):
@@ -77,3 +52,27 @@ class DB:
     def update_country_time(self, country, new_time):
         sql = ''' UPDATE data SET time=? WHERE country=? '''
         self.cur.execute(sql, (new_time, country))
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+db = DB()
+
+@app.get("/countries")
+def get_countries():
+    countries_capitals = db.countries_capitals()
+    return countries_capitals
+
+@app.get("/country/{country}")
+def allowed_capitals_for_country(country: str):
+    capitals = db.allowed_capitals_from_country(country)
+    return capitals
+
+
+
