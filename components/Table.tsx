@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 type TableProps = {
@@ -8,8 +8,19 @@ type TableProps = {
 };
 
 export function Table({ headers, rows, rowKeys }: TableProps) {
+  const scrollRef = useRef<ScrollView>(null);
+  const prevRowCountRef = useRef(rows.length);
+
+  useEffect(() => {
+    if (rows.length > prevRowCountRef.current) {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }
+    prevRowCountRef.current = rows.length;
+  }, [rows.length]);
+  
+  
   return (
-    <ScrollView horizontal={false} style={{ width: '100%' }}>
+    <ScrollView ref={scrollRef} horizontal={false} style={{ width: '100%' }}>
       <View style={styles.table}>
         {headers.length === 2 && <View pointerEvents="none" style={styles.centerDivider} />}
 
