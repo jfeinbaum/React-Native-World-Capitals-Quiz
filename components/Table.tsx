@@ -62,7 +62,8 @@ export function Table({ headers, rows, rowKeys }: TableProps) {
 const styles = StyleSheet.create({
   table: {
     position: 'relative',
-    width: '100%',
+    width: '70%',
+    alignSelf: 'center',
     borderWidth: 5,
     borderColor: '#000000',
   },

@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect, useRef } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Table } from './components/Table';
+import { WorldMap } from './components/WorldMap';
 
 const API_URL = 'http://10.0.0.234:8000';
 
@@ -23,6 +24,7 @@ export default function App() {
   const [country, setCountry] = useState('');
   const [countryData, setCountryData] = useState<CountryData>({});
   const [learnedRows, setLearnedRows] = useState<LearnedRow[]>([]);
+  const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
 
   const [answer, setAnswer] = useState('');
   const [inputEnabled, setInputEnabled] = useState(true);
@@ -61,6 +63,16 @@ export default function App() {
     inputRef.current?.focus();
   }
 
+  const highlightCountry = (countryName: string) => {
+    setHighlightedCountries((previous) => {
+      if (previous.includes(countryName)) {
+        return previous;
+      }
+
+      return previous.concat(countryName);
+    });
+  }
+
   const revealButtonPressed = () => {
     setAnswer('');
     setInputEnabled(false);
@@ -73,12 +85,21 @@ export default function App() {
 
   const handleInput = (text: string) => {
     setAnswer(text);
+    if (!country) {
+      return;
+    }
+
     const info = countryData[country];
+    if (!info) {
+      return;
+    }
+
     const guessLower = text.trim().toLowerCase();
     const isCorrect = info.allowed_capitals.some(
       capital => capital.toLowerCase() === guessLower
     );
     if (isCorrect) {
+      highlightCountry(country);
       setLearnedRows((prev) => {
         if (prev.find((row) => row.country === country)) {
           return prev;
@@ -120,6 +141,8 @@ export default function App() {
           editable={inputEnabled}
         />
       </View>
+
+      <WorldMap highlightedCountries={highlightedCountries} />
 
       <Table headers={headers} rows={rows} rowKeys={rowKeys} />
       
