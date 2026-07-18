@@ -125,6 +125,8 @@ export default function App() {
         <Pressable style={styles.button} onPress={refreshButtonPressed}>
           <Text style={styles.buttonText}>Skip</Text>
         </Pressable>
+
+        <Text>{learnedRows.length}/{Object.keys(countryData).length}</Text>
         
 
       </View>
@@ -185,10 +187,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-  statusText: {
-    color: '#069a17',
-    fontWeight: 'bold'
   },
 
   input: {
