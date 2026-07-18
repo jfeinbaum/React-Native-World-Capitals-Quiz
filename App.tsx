@@ -25,7 +25,7 @@ export default function App() {
   const [learnedRows, setLearnedRows] = useState<LearnedRow[]>([]);
 
   const [answer, setAnswer] = useState('');
-  const [submitButtonEnabled, setSubmitButtonEnabled] = useState(true);
+  const [inputEnabled, setInputEnabled] = useState(true);
 
   const inputRef = useRef<TextInput>(null);
 
@@ -35,6 +35,12 @@ export default function App() {
       .then(setCountryData)
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (Object.keys(countryData).length > 0) {
+      refreshButtonPressed();
+    }
+  }, [countryData]);
 
 
   function getRandomCountry(): string | undefined {
@@ -51,17 +57,17 @@ export default function App() {
   const refreshButtonPressed = () => {
     setCountry(getRandomCountry() || '');
     setAnswer('');
-    setSubmitButtonEnabled(true);
+    setInputEnabled(true);
     inputRef.current?.focus();
-    
   }
 
   const revealButtonPressed = () => {
+    setAnswer('');
+    setInputEnabled(false);
     if (!country) return;
     
     const capital = countryData[country].display_capital;
     setAnswer(capital);
-    setSubmitButtonEnabled(false);
     
   }
 
@@ -79,28 +85,7 @@ export default function App() {
         }
         return prev.concat({ country, capital: info.display_capital });
       });
-      setAnswer('');
       refreshButtonPressed();
-    }
-  };
-
-  const submitGuess = () => {
-    if (!country || !answer.trim()) return;
-    const info = countryData[country];
-    const guessLower = answer.trim().toLowerCase();
-    const isCorrect = info.allowed_capitals.some(
-      capital => capital.toLowerCase() === guessLower
-    );
-    if (isCorrect) {
-      setLearnedRows((prev) => {
-        if (prev.find((row) => row.country === country)) {
-          return prev;
-        }
-        return prev.concat({ country, capital: info.display_capital });
-      });
-      refreshButtonPressed();
-    } else {
-      Alert.alert('Incorrect', 'Try again!');
     }
   };
 
@@ -109,13 +94,15 @@ export default function App() {
       
       <View style={styles.placeholder}>
 
-        <Pressable style={styles.button} onPress={refreshButtonPressed}>
-          <Text style={styles.buttonText}>↺</Text>
-        </Pressable>
-        
+
         <Pressable style={styles.button} onPress={revealButtonPressed}>
           <Text style={styles.buttonText}>Reveal</Text>
         </Pressable>
+
+        <Pressable style={styles.button} onPress={refreshButtonPressed}>
+          <Text style={styles.buttonText}>Skip</Text>
+        </Pressable>
+        
 
       </View>
 
@@ -129,8 +116,8 @@ export default function App() {
           style={styles.input}
           value={answer}
           onChangeText={handleInput}
-          onSubmitEditing={submitGuess}
           autoCapitalize="words"
+          editable={inputEnabled}
         />
       </View>
 
