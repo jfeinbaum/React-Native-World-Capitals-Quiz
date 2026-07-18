@@ -46,7 +46,9 @@ export default function App() {
 
 
   function getRandomCountry(): string | undefined {
-    const keys = Object.keys(countryData);
+    const keys = Object.keys(countryData).filter(
+      (key) => !learnedRows.find((row) => row.country === key)
+    );
     return keys[Math.floor(Math.random() * keys.length)];
   }
   
