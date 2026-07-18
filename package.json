@@ -22,7 +22,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "backend": "cd backend && source venv/bin/activate && uvicorn api:app --reload --host 0.0.0.0 --port 8000",
-    "dev": "concurrently \"npm run backend\" \"npm start\""
+    "dev": "concurrently --kill-others \"npm run backend\" \"npx expo start\""
   },
   "private": true
 }

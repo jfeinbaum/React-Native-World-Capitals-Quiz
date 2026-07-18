@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
-import { Table, TableColumn, TableRow } from './components/Table';
+import { Table } from './components/Table';
 
 const API_URL = 'http://10.0.0.234:8000';
 
@@ -15,10 +15,17 @@ export default function App() {
   };
   type CountryData = Record<string, CapitalInfo>;
 
+  type LearnedRow = {
+    country: string;
+    capital: string;
+  };
+
   const [country, setCountry] = useState('');
   const [countryData, setCountryData] = useState<CountryData>({});
-  const [guess, setGuess] = useState('');
-  const [statusBarText, setStatusBarText] = useState('');
+  const [learnedRows, setLearnedRows] = useState<LearnedRow[]>([]);
+
+  const [answer, setAnswer] = useState('');
+  const [submitButtonEnabled, setSubmitButtonEnabled] = useState(true);
 
   const inputRef = useRef<TextInput>(null);
 
@@ -35,57 +42,80 @@ export default function App() {
     return keys[Math.floor(Math.random() * keys.length)];
   }
   
-  const columns: TableColumn[] = [
-  { key: 'name', title: 'Country' },
-  { key: 'capital', title: 'Capital' },
-];
+  const headers = ['Country', 'Capital'];
+  const rows = learnedRows.map((row) => [row.country, row.capital]);
+  const rowKeys = learnedRows.map((row) => row.country);
 
-  const rows: TableRow[] = Object.entries(countryData).map(([name, info]) => ({
-    name,
-    capital: info.display_capital,
-  }));
 
-  const handleInput = (text: string) => {
-    setGuess(text);
-  };
 
   const refreshButtonPressed = () => {
     setCountry(getRandomCountry() || '');
-    setGuess('');
-    setStatusBarText('');
+    setAnswer('');
+    setSubmitButtonEnabled(true);
     inputRef.current?.focus();
     
   }
 
-const submitGuess = () => {
-  const info = countryData[country];
-  const guessLower = guess.trim().toLowerCase();
-  const isCorrect = info.allowed_capitals.some(
-    capital => capital.toLowerCase() === guessLower
-  );
-  if (isCorrect) {
-    setStatusBarText("Correct!");
-  } else {
-  setStatusBarText("");
-}
+  const revealButtonPressed = () => {
+    if (!country) return;
+    
+    const capital = countryData[country].display_capital;
+    setAnswer(capital);
+    setSubmitButtonEnabled(false);
+    
+  }
 
-};
+  const handleInput = (text: string) => {
+    setAnswer(text);
+    const info = countryData[country];
+    const guessLower = text.trim().toLowerCase();
+    const isCorrect = info.allowed_capitals.some(
+      capital => capital.toLowerCase() === guessLower
+    );
+    if (isCorrect) {
+      setLearnedRows((prev) => {
+        if (prev.find((row) => row.country === country)) {
+          return prev;
+        }
+        return prev.concat({ country, capital: info.display_capital });
+      });
+      setAnswer('');
+      refreshButtonPressed();
+    }
+  };
+
+  const submitGuess = () => {
+    if (!country || !answer.trim()) return;
+    const info = countryData[country];
+    const guessLower = answer.trim().toLowerCase();
+    const isCorrect = info.allowed_capitals.some(
+      capital => capital.toLowerCase() === guessLower
+    );
+    if (isCorrect) {
+      setLearnedRows((prev) => {
+        if (prev.find((row) => row.country === country)) {
+          return prev;
+        }
+        return prev.concat({ country, capital: info.display_capital });
+      });
+      refreshButtonPressed();
+    } else {
+      Alert.alert('Incorrect', 'Try again!');
+    }
+  };
 
   return (
     <View style={styles.container}>
       
       <View style={styles.placeholder}>
-        <Pressable style={styles.button} onPress={() => submitGuess()}>
-          <Text style={styles.buttonText}>▶</Text>
-        </Pressable>
 
         <Pressable style={styles.button} onPress={refreshButtonPressed}>
           <Text style={styles.buttonText}>↺</Text>
         </Pressable>
         
-        <Text style={styles.statusText}>
-          {statusBarText}
-        </Text>
+        <Pressable style={styles.button} onPress={revealButtonPressed}>
+          <Text style={styles.buttonText}>Reveal</Text>
+        </Pressable>
 
       </View>
 
@@ -97,14 +127,14 @@ const submitGuess = () => {
         <TextInput
           ref={inputRef}
           style={styles.input}
-          value={guess}
+          value={answer}
           onChangeText={handleInput}
           onSubmitEditing={submitGuess}
           autoCapitalize="words"
         />
       </View>
 
-      <Table columns={columns} rows={rows} />
+      <Table headers={headers} rows={rows} rowKeys={rowKeys} />
       
 
       <StatusBar style="auto" />
@@ -115,10 +145,11 @@ const submitGuess = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#222425',
+    backgroundColor: '#284553',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 100,
+    
   },
   placeholder: {
     height: 50,
