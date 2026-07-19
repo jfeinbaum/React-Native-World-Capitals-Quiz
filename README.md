@@ -1,4 +1,4 @@
-This is a quiz that fills in a map of tje world as the player guesses all of the capital cities.
+This is a quiz that fills in a map of the world as the player guesses the capital cities.
 
 Frontend is React Native in Typescript.
 Backend is FastAPI with a SQLite database.
