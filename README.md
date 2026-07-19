@@ -1,7 +1,7 @@
-This is a quiz to name all of the capital cities of the world.
+This is a quiz that fills in a map of tje world as the player guesses all of the capital cities.
 
-Frontend is React Native in Typescript built with Expo.
-Backend is Python FastAPI with a SQLite3 database storing country data and spelling variations.
+Frontend is React Native in Typescript.
+Backend is FastAPI with a SQLite database storing country data and spelling variations.
 
 ---
 Initial setup:
@@ -10,7 +10,7 @@ Initial setup:
 2. `chmod +x setup.sh` and then `./setup.sh` to setup the backend environment and database.
 3. Return to the project root with `cd ..`
 4. Modify the `API_URL` in `App.tsx` with your local IP.
-5. Run with `npm dev` -- concurrently starts FastAPI with uvicorn and Expo app with npx.
+5. Run with `npm run dev` -- concurrently starts FastAPI with uvicorn and Expo app with npx.
 
 ---
 
