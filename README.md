@@ -1,7 +1,7 @@
 This is a quiz that fills in a map of tje world as the player guesses all of the capital cities.
 
-Frontend is React Native in Typescript.
-Backend is FastAPI with a SQLite database storing country data and spelling variations.
+Frontend is React Native in Typescript built with Expo.
+Backend is Python FastAPI with a SQLite database to store country data and spelling variations.
 
 ---
 Initial setup:
