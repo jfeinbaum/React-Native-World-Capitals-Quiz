@@ -47,7 +47,7 @@ export default function App() {
 
   function getRandomCountry(): string | undefined {
     const keys = Object.keys(countryData).filter(
-      (key) => !learnedRows.find((row) => row.country === key)
+      (key) => !learnedRows.find((row) => row.country === key) && key !== country
     );
     return keys[Math.floor(Math.random() * keys.length)];
   }
@@ -59,7 +59,8 @@ export default function App() {
 
 
   const refreshButtonPressed = () => {
-    setCountry(getRandomCountry() || '');
+    const newCountry = getRandomCountry() || '';
+    setCountry(newCountry);
     setAnswer('');
     setInputEnabled(true);
     inputRef.current?.focus();
