@@ -15,6 +15,12 @@ export function Table({ headers, rows, rowKeys }: TableProps) {
     <ScrollView ref={scrollRef} horizontal={false} style={{ width: '100%' }}>
       <View style={styles.table}>
         {headers.length === 2 && <View pointerEvents="none" style={styles.centerDivider} />}
+        {headers.length === 3 && (
+          <>
+            <View pointerEvents="none" style={[styles.centerDivider, { left: '33.33%' }]} />
+            <View pointerEvents="none" style={[styles.centerDivider, { left: '66.66%' }]} />
+          </>
+        )}
 
         <View style={styles.headerRow}>
           {headers.map((header, colIndex) => (

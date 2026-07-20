@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect, useRef } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View, ScrollView } from 'react-native';
 import { Table } from './components/Table';
 import { WorldMap } from './components/WorldMap';
 
@@ -19,22 +19,25 @@ export default function App() {
   type LearnedRow = {
     country: string;
     capital: string;
+    time: number;
   };
 
   const [country, setCountry] = useState('');
   const [countryData, setCountryData] = useState<CountryData>({});
   const [learnedRows, setLearnedRows] = useState<LearnedRow[]>([]);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
-
   const [answer, setAnswer] = useState('');
   const [inputEnabled, setInputEnabled] = useState(true);
 
   const inputRef = useRef<TextInput>(null);
+  const lastTimestamp = useRef(performance.now());
+
 
   useEffect(() => {
-    fetch(`${API_URL}/countries`)
+    fetch(`${API_URL}/countries_data`)
       .then((res) => res.json())
-      .then(setCountryData)
+      .then((data) => setCountryData(data.countries))
       .catch(console.error);
   }, []);
 
@@ -52,14 +55,16 @@ export default function App() {
     return keys[Math.floor(Math.random() * keys.length)];
   }
   
-  const headers = ['Country', 'Capital'];
-  const rows = learnedRows.map((row) => [row.country, row.capital]);
+  const headers = ['Country', 'Capital', 'Time'];
+  const rows = learnedRows.map((row) => [row.country, row.capital, String(row.time)]);
   const rowKeys = learnedRows.map((row) => row.country);
 
 
 
   const refreshButtonPressed = () => {
+    console.log('Refreshing button pressed');
     const newCountry = getRandomCountry() || '';
+    console.log('New country selected:', newCountry);
     setCountry(newCountry);
     setAnswer('');
     setInputEnabled(true);
@@ -86,6 +91,16 @@ export default function App() {
     
   }
 
+  const updateCountryTime = (countryName: string, elapsedTime: number) => {
+    fetch(`${API_URL}/update_time/${countryName}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ time: elapsedTime })
+    }).catch(console.error);
+  };
+
   const handleInput = (text: string) => {
     setAnswer(text);
     if (!country) {
@@ -102,58 +117,71 @@ export default function App() {
       capital => capital.toLowerCase() === guessLower
     );
     if (isCorrect) {
+
+
+      const now = performance.now();
+      const elapsedTime = Number(((now - lastTimestamp.current) / 1000).toFixed(3));
+    
+      lastTimestamp.current = now;
+
+      console.log('Elapsed seconds for', country, ':', elapsedTime);
+
       highlightCountry(country);
       setLearnedRows((prev) => {
         if (prev.find((row) => row.country === country)) {
           return prev;
         }
-        return prev.concat({ country, capital: info.display_capital });
+        const newRow = { country, capital: info.display_capital, time: elapsedTime };
+        return prev.concat(newRow);
       });
+
       refreshButtonPressed();
     }
   };
 
   return (
-    <View style={styles.container}>
-      
-      <View style={styles.placeholder}>
+    <ScrollView>
+      <View style={styles.container}>
+        
+        <View style={styles.placeholder}>
 
 
-        <Pressable style={styles.button} onPress={revealButtonPressed}>
-          <Text style={styles.buttonText}>Reveal</Text>
-        </Pressable>
+          <Pressable style={styles.button} onPress={revealButtonPressed}>
+            <Text style={styles.buttonText}>Reveal</Text>
+          </Pressable>
 
-        <Pressable style={styles.button} onPress={refreshButtonPressed}>
-          <Text style={styles.buttonText}>Skip</Text>
-        </Pressable>
+          <Pressable style={styles.button} onPress={refreshButtonPressed}>
+            <Text style={styles.buttonText}>Skip</Text>
+          </Pressable>
 
-        <Text>{learnedRows.length}/{Object.keys(countryData).length}</Text>
+          <Text>{learnedRows.length}/{Object.keys(countryData).length}</Text>
+          
+
+        </View>
+
+        <View style={styles.placeholder}>
+          <Text>{country}</Text>
+        </View>
+        
+        <View style={styles.placeholder}>
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            value={answer}
+            onChangeText={handleInput}
+            autoCapitalize="words"
+            editable={inputEnabled}
+          />
+        </View>
+
+        <WorldMap highlightedCountries={highlightedCountries} />
+
+        <Table headers={headers} rows={rows} rowKeys={rowKeys} />
         
 
+        <StatusBar style="auto" />
       </View>
-
-      <View style={styles.placeholder}>
-        <Text>{country}</Text>
-      </View>
-      
-      <View style={styles.placeholder}>
-        <TextInput
-          ref={inputRef}
-          style={styles.input}
-          value={answer}
-          onChangeText={handleInput}
-          autoCapitalize="words"
-          editable={inputEnabled}
-        />
-      </View>
-
-      <WorldMap highlightedCountries={highlightedCountries} />
-
-      <Table headers={headers} rows={rows} rowKeys={rowKeys} />
-      
-
-      <StatusBar style="auto" />
-    </View>
+    </ScrollView>
   );
 }
 

@@ -49,6 +49,7 @@ class DB:
     def update_country_time(self, country, new_time):
         sql = ''' UPDATE data SET time=? WHERE country=? '''
         self.cur.execute(sql, (new_time, country))
+        self.conn.commit()
 
     def countries_allowed_capitals(self):
         sql = """
