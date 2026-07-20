@@ -25,7 +25,6 @@ export default function App() {
   const [country, setCountry] = useState('');
   const [countryData, setCountryData] = useState<CountryData>({});
   const [learnedRows, setLearnedRows] = useState<LearnedRow[]>([]);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
   const [answer, setAnswer] = useState('');
   const [inputEnabled, setInputEnabled] = useState(true);
@@ -62,9 +61,7 @@ export default function App() {
 
 
   const refreshButtonPressed = () => {
-    console.log('Refreshing button pressed');
     const newCountry = getRandomCountry() || '';
-    console.log('New country selected:', newCountry);
     setCountry(newCountry);
     setAnswer('');
     setInputEnabled(true);
@@ -124,7 +121,6 @@ export default function App() {
     
       lastTimestamp.current = now;
 
-      console.log('Elapsed seconds for', country, ':', elapsedTime);
 
       highlightCountry(country);
       setLearnedRows((prev) => {
