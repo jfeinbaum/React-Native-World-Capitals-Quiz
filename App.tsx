@@ -61,6 +61,8 @@ export default function App() {
 
 
   const refreshButtonPressed = () => {
+    const now = performance.now();
+    lastTimestamp.current = now;
     const newCountry = getRandomCountry() || '';
     setCountry(newCountry);
     setAnswer('');
